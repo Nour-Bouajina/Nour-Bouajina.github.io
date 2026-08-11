@@ -1,0 +1,13 @@
+title: Nour Bouajina
+description: Research notes and progress logs
+theme: minima
+minima:
+  skin: dark
+
+show_excerpts: false
+
+header_pages:
+  - ssmds.md
+  - pic.md
+
+# Jekyll auto-builds this repo on every push via GitHub Pages — no local build step needed.

@@ -1,0 +1,36 @@
+---
+# Only the main Sass file needs front matter (the dashes are enough)
+---
+
+// Modest structural tuning only: no color changes here, see the single
+// accent-color override below.
+$content-width: 700px;
+$base-line-height: 1.6;
+$spacing-unit: 32px;
+
+// One restrained accent color, used only for links and the site header
+// identity (top border + site title). Everything else stays black/white.
+$accent: #395C68;
+$brand-color: $accent;
+$grey-color-dark: $accent;
+
+@import "minima";
+
+// --- functional fixes, not decorative ---
+
+body {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+// long inline code / equations shouldn't force horizontal page scroll
+pre, code {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px 0;
+}

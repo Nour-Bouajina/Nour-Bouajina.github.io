@@ -1,8 +1,11 @@
 title: Nour Bouajina
 description: Research notes and progress logs
 theme: minima
-minima:
-  skin: dark
+
+# GitHub Pages runs minima 2.5.x, which has no built-in dark skin. The dark
+# theme and color palette are hand-applied via variable overrides in
+# assets/main.scss instead (the "minima: skin:" config key does nothing on
+# this version and is intentionally omitted).
 
 show_excerpts: false
 

@@ -1,0 +1,73 @@
+---
+# Only the main Sass file needs front matter (the dashes are enough)
+---
+
+// Variable overrides must come before the minima import (they rely on !default).
+$content-width: 760px;
+$base-line-height: 1.6;
+$spacing-unit: 34px;
+
+@import
+  "minima/skins/{{ site.minima.skin | default: 'classic' }}",
+  "minima/initialize";
+
+// --- custom polish below ---
+
+body {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.post-content,
+.page-content {
+  h1, h2, h3, h4 {
+    margin-top: $spacing-unit * 1.2;
+    margin-bottom: $spacing-unit * 0.4;
+    line-height: 1.3;
+  }
+
+  p, ul, ol {
+    margin-bottom: $spacing-unit * 0.6;
+  }
+
+  blockquote {
+    border-left: 3px solid;
+    opacity: 0.85;
+    font-style: normal;
+  }
+}
+
+// long inline code / equations shouldn't force horizontal page scroll
+pre, code {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px 0;
+}
+
+.post-list {
+  li {
+    margin-bottom: $spacing-unit * 0.7;
+  }
+
+  .post-meta {
+    font-size: $small-font-size;
+    opacity: 0.75;
+  }
+}
+
+.site-header {
+  border-top-width: 3px;
+}
+
+a {
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

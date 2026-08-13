@@ -7,6 +7,24 @@ $content-width: 760px;
 $base-line-height: 1.6;
 $spacing-unit: 34px;
 
+// Palette: warm neutral grays + cream + teal, applied to the dark skin below.
+$c-gray:      #B5B2B5;
+$c-mauve:     #A69496;
+$c-cream:     #E5CAB6;
+$c-teal:      #668288;
+$c-deep-teal: #395C68;
+
+$dm-background-color:      #12181a;
+$dm-code-background-color: #1b2225;
+$dm-heading-color:         $c-cream;
+$dm-text-color:            $c-gray;
+$dm-brand-color:           $c-mauve;
+$dm-link-base-color:       $c-teal;
+$dm-link-visited-color:    $c-deep-teal;
+$dm-border-color-01:       $c-deep-teal;
+$dm-border-color-02:       $c-teal;
+$dm-border-color-03:       $c-mauve;
+
 @import
   "minima/skins/{{ site.minima.skin | default: 'classic' }}",
   "minima/initialize";
@@ -26,15 +44,25 @@ body {
     line-height: 1.3;
   }
 
+  h2 {
+    color: $c-teal;
+  }
+
   p, ul, ol {
     margin-bottom: $spacing-unit * 0.6;
   }
 
   blockquote {
-    border-left: 3px solid;
-    opacity: 0.85;
+    border-left: 3px solid $c-deep-teal;
+    opacity: 0.9;
     font-style: normal;
   }
+}
+
+.post-title,
+.page-heading {
+  border-bottom: 2px solid $c-deep-teal;
+  padding-bottom: 0.3em;
 }
 
 // long inline code / equations shouldn't force horizontal page scroll
@@ -60,8 +88,17 @@ pre, code {
   }
 }
 
+.post-date {
+  color: $c-mauve;
+  margin-right: 0.4em;
+}
+
 .site-header {
-  border-top-width: 3px;
+  border-top: 3px solid $c-deep-teal;
+}
+
+.site-footer {
+  border-top-color: $c-deep-teal;
 }
 
 a {

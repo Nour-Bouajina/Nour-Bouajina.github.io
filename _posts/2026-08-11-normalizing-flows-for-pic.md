@@ -54,7 +54,7 @@ Still to fill in:
 
 <!--
 Still to fill in:
-- Flow input/condition: target spectrum Et(λ) (real + imag parts, shape 800) —
+- Flow input/condition: target spectrum Et(λ) (real + imag parts, shape 800);
   confirm this shape/representation
 - how this connects back to the simulator-as-decoder architecture used for the
   VAE variants (any reuse of that dataset / training setup?)

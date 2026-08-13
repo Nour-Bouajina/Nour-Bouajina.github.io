@@ -1,0 +1,2 @@
+- log loss
+- the thin manifold of resonnances, look for it

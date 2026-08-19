@@ -5,7 +5,7 @@ date: 2026-08-15
 category: pic
 ---
 
-Colab link: https://colab.research.google.com/drive/1lILsFrs_1az5Bj6rQUE6q82BlqiXuX5V?usp=sharing
+Colab link: [colab.research.google.com/drive/1lILsFrs_1az5Bj6rQUE6q82BlqiXuX5V](https://colab.research.google.com/drive/1lILsFrs_1az5Bj6rQUE6q82BlqiXuX5V?usp=sharing)
 
 `demo.ipynb`, in the [PIC repo](https://github.com/Nour-Bouajina/PIC) under `idea1/`, shrinks the real problem, $\theta\in\mathbb{R}^{42}\to S(\theta)\in\mathbb{R}^{400}$, down to $\theta\in\mathbb{R}^2$ with a low-dimensional simulator output, small enough to plot directly. Nothing here is a simplification of the *math*, the KL objective, the prior, $\beta$, the flow are all the real thing, just in 2 dimensions instead of 42, so every claim can be looked at on a plot instead of inferred from a loss curve. This post explains the logic behind each experiment and reports what actually happened when the notebook was run (not what should happen in principle).
 
@@ -19,6 +19,8 @@ Colab link: https://colab.research.google.com/drive/1lILsFrs_1az5Bj6rQUE6q82Blqi
 
 $S_A(\theta_1,\theta_2) = (\theta_1^2-\theta_2^2,\ 2\theta_1\theta_2)$, which is $(\theta_1+i\theta_2)^2$ written out in real/imaginary form. In polar coordinates this simulator doubles the angle, so $S_A(\theta) = S_A(-\theta)$ always: any nonzero target already has two solutions, 180 degrees apart.
 
+![Rays in theta-space and their images under S_A: angle doubles, radius squares](/assets/pic-2d-demo/angle-doubling.png)
+
 **Ordinary inverse optimization.** For the target $y^\star = S_A(1,1) = (0,2)$, 24 random starting points were optimized by plain gradient descent on $d(\theta) = \lVert S_A(\theta)-y^\star\rVert^2$. Result: **10 converged near $(1,1)$, 14 near $(-1,-1)$**, roughly split between the two attractor basins, exactly the two known exact solutions. Different starts, different (but both valid) answers.
 
 **Naive generator, physics-only.** A tiny MLP $\theta = f_\phi(z)$, $z$ 1-D, trained only against $L_{\mathrm{physics}} = \mathrm{mean}(d(S_A(\theta_i), y^\star))$. After training: final physics loss **0.000046** (it found a valid solution), but **100% of generated samples landed near $(-1,-1)$ and 0% near $(1,1)$**. Complete collapse onto a single one of the two solutions, even though nothing in the loss prefers one over the other, the optimizer just broke the symmetry arbitrarily and had zero incentive to represent both.
@@ -29,7 +31,11 @@ $S_B(\theta) = \theta_1^2+\theta_2^2$. For target $y^\star = 4$, the exact solut
 
 **Ordinary inverse optimization.** 30 random starts, gradient descent on $d(\theta)$. Final angles landed all over the circle (spread across the full 0 to 360 degree range, no clustering), confirming "one target, many valid solutions" experimentally, not just by construction.
 
+![30 random starts, gradient descent, 30 different landing points on the solution circle](/assets/pic-2d-demo/optimization-trajectories.png)
+
 **Naive generator, physics-only.** Same as Demo A, transplanted onto the circle. Final physics loss **0.001682**, but the generated points' angular spread was **std = 28.1 degrees**, far tighter than the roughly 104 degrees a uniform spread over a full circle would give. The generator solved the inverse problem (low physics error) without learning the inverse solution *distribution* (it found one point on the circle and stuck to it). The notebook's training-progress panel shows this happening live: early samples are scattered, later samples visibly converge onto one point.
+
+![Physics-only generator: 500 generated samples piled up instead of spread around the circle, and the collapse happening live over training](/assets/pic-2d-demo/collapse.png)
 
 ## $p(\theta\mid y^\star)$: plotted directly
 
@@ -38,6 +44,8 @@ With only 2 dimensions, $p(\theta\mid y^\star) \propto p(\theta)\, e^{-\beta\, d
 - **Uniform prior, $\beta = 10$**: probability concentrates in a smooth band around the solution circle, not sharply on it (finite $\beta$ gives a "soft" solution set), and is flat in angle, matching the rotational symmetry of both the prior and $d$.
 - **Gaussian prior vs. uniform prior**, same target and $\beta$: the Gaussian prior visibly tilts the density toward the side of the ring closer to the origin, without changing which configurations are valid. This is the prior's actual job: not deciding validity, deciding how probability is distributed among valid configurations.
 - **$\beta\in\{0.1, 1, 10, 100\}$**: at $\beta = 0.1$ the density is almost as broad as the whole prior box; at $\beta = 100$ it's a razor-thin ring. The transition from "physics barely matters" to "physics is nearly a hard constraint" is continuous and visible.
+
+![p(theta | y*) on a grid, uniform prior, beta = 0.1, 1, 10, 100: broad to razor-thin](/assets/pic-2d-demo/beta-sweep.png)
 
 ## The flow
 
@@ -48,6 +56,8 @@ With only 2 dimensions, $p(\theta\mid y^\star) \propto p(\theta)\, e^{-\beta\, d
 **Training against the KL objective**, fixed target $y^\star = 4$, uniform prior, $\beta = 10$, 4000 steps: loss went from **223.2 at step 0 to -0.385 final**, mean physics error settled around **0.06 to 0.07**.
 
 **Learned $q_\phi$ vs. true $p$, side by side**: a 20000-sample 2D histogram of the trained flow's output visually reproduces the ring shape of the analytic heatmap, concentrated around radius 2, spread across the full range of angles rather than piled at one point.
+
+![True p(theta | y*) on the left, learned q_phi from 20000 flow samples on the right: both rings, both spread across the full range of angles](/assets/pic-2d-demo/learned-vs-true.png)
 
 **Validity** (2000 fresh samples): mean $\lvert S(\theta_i) - y^\star\rvert$ = **0.190**. Not exact, expected at a finite $\beta$ that deliberately trades some accuracy for spread (matches the beta sweep's lesson directly).
 
@@ -66,6 +76,8 @@ A single $q_\phi(\theta\mid y)$ was trained on $y^\star\in\{1, 2, 4, 9\}$ (radii
 | **6.25 (unseen)** | **2.500** | **2.663** | **0.937** |
 
 The four trained targets match their true radius almost exactly (largest deviation 0.015) with validity errors all in the same 0.16 to 0.20 range as the single-target experiment above, evidence the conditioning genuinely works, not just that the model memorized four separate rings, it's one shared set of weights producing the right radius for each input. The unseen target generalizes in the right direction (2.663 is much closer to 2.5 than to any trained radius) but with a validity error roughly 5x worse than the trained targets. That's a real, informative gap: the conditional mapping interpolates reasonably but not for free, exactly the kind of thing worth checking (and reporting honestly) when scaling this idea up to the real 42-to-400 problem with arbitrary, never-before-seen target spectra.
+
+![One conditional flow, five test targets: generated points land on the matching-radius ring for each, including the unseen one](/assets/pic-2d-demo/multi-target.png)
 
 ## What this maps back to in the real project
 

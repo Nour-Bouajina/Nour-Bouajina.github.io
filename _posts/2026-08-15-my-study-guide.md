@@ -2,6 +2,7 @@
 layout: post
 title: "My Study Guide: How to Read Math Papers and Textbooks"
 date: 2026-08-15
+published: false
 ---
 
 Personal notes on how to actually study mathematical papers and textbooks, rather than passively reading them.

@@ -3,17 +3,17 @@ layout: post
 title: "Normalizing Flows: My Study Notes"
 date: 2026-08-15
 category: pic
+papers: NICE, real NVP, Variational Inference with Normalizing Flows
+published: false
 ---
 
-*A study-first guide to understanding normalizing flows without drowning in notation.*
+*A study-1st guide to understanding normalizing flows without drowning in notation.*
 
 ---
 
-## 0. What am I actually trying to understand?
+## 0. What is the problem?
 
-Before touching the equations, I want to know the problem.
-
-I want a model that can learn a complicated probability distribution over $x$.
+We want a model that can learn a complicated probability distribution over $x$.
 
 For example, suppose
 
@@ -29,21 +29,19 @@ $$
 
 The problem is:
 
-> How can I construct a complicated distribution while still being able to calculate its density exactly and generate samples from it efficiently?
+> How can we construct a complicated distribution while still being able to calculate its density exactly and generate samples from it efficiently?
 
-Normalizing flows give one elegant answer:
+Normalizing flows solves this:
 
-> **Start with a simple distribution and continuously deform it into the complicated distribution I want, while making every deformation invertible and keeping track of how the deformation changes density.**
+> **Start with a simple distribution and continuously deform it into the complicated distribution we want, while making every deformation invertible and keeping track of how the deformation changes density.**
 
-That sentence is the entire subject in miniature.
+That is the entire subject. Everything else is machinery for making that idea computationally possible.
 
-Everything else is machinery for making that idea computationally possible.
-
-The original NICE paper describes essentially this goal: learn a nonlinear invertible transformation that maps data into a simpler, factorized latent distribution, while keeping the Jacobian determinant and inverse tractable.
+The NICE paper describes this goal: learn a nonlinear invertible transformation that maps data into a simpler, factorized latent distribution, while keeping the Jacobian determinant and inverse tractable.
 
 ---
 
-# 1. The mental picture first
+# 1. Mental picture
 
 Imagine that my data distribution looks like this:
 
@@ -78,13 +76,13 @@ Visually:
              Gaussian
 
                ●
-            ●●●●●
-          ●●●●●●●
+            ●●●●
+          ●●●●●●
             ●●●●
                ●
 ```
 
-I want to learn an invertible function
+We want to learn an invertible function
 
 $$
 f:X\rightarrow Z
@@ -104,7 +102,7 @@ $$
 
 takes a simple Gaussian sample and turns it into a sample resembling the data.
 
-So there are really two directions:
+So there are two directions:
 
 ### Data → latent
 
@@ -129,15 +127,13 @@ This is useful for:
 * generation,
 * sampling.
 
-Real NVP explicitly describes this two-way relationship: $z=f(x)$ for inference and $x=f^{-1}(z)$ for generation.
+Real NVP describes this two-way relationship: $z=f(x)$ for inference and $x=f^{-1}(z)$ for generation.
 
 ---
 
-# 2. The first load-bearing concept: change of variables
+# 2. The 1st load-bearing concept: change of variables
 
-This is the mathematical heart of normalizing flows.
-
-If I understand only one equation initially, it should be this:
+The heart of normalizing flows. If we understand only one equation initially, it should be this:
 
 $$
 p_X(x)
@@ -163,21 +159,10 @@ $$
 \right|.
 $$
 
-This is the change-of-variables formula used by Real NVP.
-
-Do not memorize this yet.
-
-Understand what it says.
-
 ---
 
 # 3. Why does the Jacobian appear?
-
-This is one of the places where papers can make something elementary sound terrifying.
-
-Forget probability for a moment.
-
-Suppose I stretch a one-dimensional coordinate:
+Suppose we stretch a one-dimensional coordinate:
 
 $$
 y=2x.
@@ -223,23 +208,21 @@ $$
 \left|\det J_f(x)\right|.
 $$
 
-The determinant tells me:
+Geometrically, the determinant asks:
 
 > **How much the transformation locally expands or contracts volume.**
 
-That's the geometric meaning.
-
 ---
 
-# 4. The most important intuition
+# 4. Intuition
 
-Whenever I see
+Whenever we see
 
 $$
 \log|\det J|,
 $$
 
-I should mentally translate it into:
+We should mentally translate it into:
 
 > **local volume change.**
 
@@ -259,23 +242,15 @@ $$
 |\det J|<1,
 $$
 
-the transformation contracts volume.
+the transformation contracts volume. Probability mass gets concentrated, so density increases.
 
-Probability mass gets concentrated, so density increases.
-
-The normalizing-flow paper explicitly describes flows in exactly this geometric language: invertible transformations produce local expansions and contractions of the initial density.
-
-This is much more useful than memorizing the determinant formula.
+In geometric language: invertible transformations produce local expansions and contractions of the initial density.
 
 ---
 
 # 5. Why invertibility?
 
-Now I ask:
-
-> Why do we insist that $f$ has an inverse?
-
-Because I want to go both ways.
+Because we want to go both ways.
 
 For density evaluation:
 
@@ -299,15 +274,13 @@ So a normalizing flow is built from maps that are:
 4. computationally cheap in the inverse direction,
 5. equipped with a tractable Jacobian determinant.
 
-The papers repeatedly emphasize this combination of properties. NICE specifically seeks transformations with an easy determinant and easy inverse.
-
 ---
 
-# 6. The second load-bearing concept: composition
+# 6. The 2nd load-bearing concept: composition
 
 One simple transformation isn't powerful enough.
 
-So I use many:
+So we use many:
 
 $$
 z_0
@@ -327,7 +300,7 @@ $$
 f=f_K\circ\cdots\circ f_2\circ f_1.
 $$
 
-The beautiful part is that the log-density contributions add:
+The log-density contributions add:
 
 $$
 \log q_K(z_K)
@@ -344,15 +317,13 @@ $$
 
 This is the key equation for a finite normalizing flow.
 
-This is another place where the notation looks worse than the idea.
-
 The idea is simply:
 
 > **Each layer changes the density. Keep track of every change and add them together.**
 
 ---
 
-# 7. Why composition is so powerful
+# 7. Why composition
 
 This is the same basic philosophy as neural networks.
 
@@ -374,7 +345,7 @@ $$
 \text{complex invertible map}.
 $$
 
-The catch is that ordinary neural networks don't generally give us:
+But an ordinary neural networks don't generally give us:
 
 * an easy inverse,
 * an easy Jacobian determinant.
@@ -384,10 +355,7 @@ That is the central engineering/mathematical obstacle.
 ---
 
 # 8. The central problem
-
-At this point I should stop and formulate the actual research problem.
-
-I want:
+We want:
 
 $$
 \boxed{\text{high expressive power}}
@@ -409,11 +377,11 @@ These requirements fight each other.
 
 A completely general neural network can be expressive.
 
-But its inverse may be impossible to compute.
+But its inverse is impossible to compute.
 
-And its Jacobian determinant may be extremely expensive.
+And its Jacobian determinant is extremely expensive.
 
-The normalizing-flow literature is largely about clever ways of resolving this conflict.
+Normalizing-flow literature is about ways of resolving this conflict.
 
 The early flow paper notes that naive invertible parameterizations can make Jacobian computation expensive, motivating transformations with low-cost determinant calculations.
 
@@ -435,7 +403,7 @@ $$
 \det J=ac.
 $$
 
-I don't have to calculate a complicated determinant.
+We don't have to calculate a complicated determinant.
 
 For a triangular matrix,
 
@@ -447,13 +415,11 @@ $$
 
 So the question becomes:
 
-> Can I design a complicated nonlinear transformation whose Jacobian is triangular?
+> Can we design a complicated nonlinear transformation whose Jacobian is triangular?
 
 Yes.
 
-That is the idea behind coupling layers.
-
-The NICE paper explicitly motivates the architecture through triangular Jacobians because their determinants are just products of diagonal elements.
+That is the idea of coupling layers.
 
 ---
 
@@ -477,12 +443,6 @@ $$
 y_2=x_2+m(x_1).
 $$
 
-That's it.
-
-At first glance, this looks almost useless.
-
-But look at what it gives us.
-
 ---
 
 # 11. The inverse is trivial
@@ -491,12 +451,6 @@ We have
 
 $$
 y_1=x_1.
-$$
-
-Therefore
-
-$$
-x_1=y_1.
 $$
 
 And
@@ -522,11 +476,7 @@ $$
 
 The inverse is just as easy as the forward computation.
 
-And $m$ can be a complicated neural network.
-
-This is the crucial trick.
-
-NICE emphasizes exactly this point: the coupling function $m$ can be arbitrarily complex, while the resulting transformation remains trivially invertible.
+The coupling function $m$ can be arbitrarily complex (a complicated neural network), while the resulting transformation remains trivially invertible.
 
 ---
 
@@ -542,25 +492,17 @@ $$
 
 is a giant neural network.
 
-It might be impossible to invert $m$.
-
-But I don't care.
-
 The inverse of the whole transformation is
 
 $$
 x_2=y_2-m(y_1).
 $$
 
-I never need
+We never need
 
 $$
 m^{-1}.
 $$
-
-That's the cleverness of the architecture.
-
-The neural network generates a transformation of one part using another part as conditioning information.
 
 ---
 
@@ -581,7 +523,7 @@ $$
 the Jacobian has the structure
 
 $$
-J= \begin{pmatrix} I & 0 \\ \frac{\partial y_2}{\partial x_1} & I \end{pmatrix}.
+J= \begin{pmatrix} we & 0 \\ \frac{\partial y_2}{\partial x_1} & we \end{pmatrix}.
 $$
 
 Therefore:
@@ -589,12 +531,6 @@ Therefore:
 $$
 \det J=1.
 $$
-
-The complicated derivatives of $m$ appear in the lower-left block.
-
-But the determinant doesn't care.
-
-It only sees the diagonal.
 
 Therefore:
 
@@ -606,7 +542,7 @@ This is the mathematical reason the architecture works.
 
 ---
 
-# 14. This was NICE
+# 14. NICE Paper idea
 
 NICE uses the additive coupling transformation
 
@@ -670,7 +606,7 @@ Here:
 * $t$ is a translation network,
 * $\odot$ means elementwise multiplication.
 
-The first part remains unchanged:
+The 1st part remains unchanged:
 
 $$
 y_1=x_1.
@@ -682,7 +618,7 @@ This is the Real NVP affine coupling layer.
 
 # 16. Why the exponential?
 
-Because I need the scaling factor to be positive:
+Because we need the scaling factor to be positive:
 
 $$
 \exp(s(x_1))>0.
@@ -706,18 +642,18 @@ $$
 
 Again:
 
-> I don't need to invert $s$ or $t$.
+> no need to invert $s$ or $t$.
 
 This is why the networks producing $s$ and $t$ can be arbitrarily complicated.
 
 ---
 
-# 17. Now the Jacobian becomes interesting
+# 17. The new Jacobian
 
 The Jacobian is triangular:
 
 $$
-J= \begin{pmatrix} I & 0 \\ (*) & \operatorname{diag}(\exp(s(x_1))) \end{pmatrix}.
+J= \begin{pmatrix} we & 0 \\ (*) & \operatorname{diag}(\exp(s(x_1))) \end{pmatrix}.
 $$
 
 Therefore:
@@ -744,11 +680,7 @@ Real NVP explicitly derives this triangular-Jacobian determinant and notes that 
 
 ---
 
-# 18. Stop here and understand the trick
-
-This is the point where I should **not** continue reading the paper.
-
-I should be able to answer:
+# 18. SO:
 
 ### What is the problem?
 
@@ -778,11 +710,9 @@ The Jacobian is triangular.
 
 Because its derivatives don't enter the determinant.
 
-If I understand these six answers, I understand the central architectural idea.
-
 ---
 
-# 19. A tiny two-dimensional example
+# 19. A 2-dimensional example
 
 Let
 
@@ -836,15 +766,9 @@ $$
 \det J=e^{2x_1}.
 $$
 
-Notice something important.
-
-I never needed to calculate the ugly lower-left derivative.
-
-That is the whole trick.
-
 ---
 
-# 20. Why one coupling layer isn't enough
+# 20. Why 1 coupling layer isn't enough
 
 There is an obvious problem.
 
@@ -860,11 +784,11 @@ So $x_1$ is not directly transformed.
 
 Only $x_2$ changes.
 
-What if we apply another coupling layer that transforms $x_1$ using $x_2$?
+=> we apply another coupling layer that transforms $x_1$ using $x_2$?
 
 Then:
 
-First layer:
+1st layer:
 
 $$
 (x_1,x_2)
@@ -872,7 +796,7 @@ $$
 (x_1,y_2).
 $$
 
-Second layer:
+2nd layer:
 
 $$
 (x_1,y_2)
@@ -888,7 +812,7 @@ Real NVP uses alternating masks so that variables left unchanged by one coupling
 
 ---
 
-# 21. The full mental picture
+# 21. Full mental picture
 
 A flow might therefore look like:
 
@@ -978,11 +902,9 @@ Real NVP was explicitly designed around exact and efficient likelihood evaluatio
 
 ---
 
-# 23. And sampling?
+# 23. Plus simple sampling 
 
-Sampling is almost embarrassingly simple.
-
-Start with
+Let
 
 $$
 z\sim p_Z.
@@ -1025,9 +947,7 @@ The early NICE paper already highlights this simple sampling procedure: sample $
 
 ---
 
-# 24. One equation that explains the entire model
-
-If I had to reduce normalizing flows to one mathematical statement, it would be:
+# 24. So
 
 $$
 \boxed{
@@ -1039,11 +959,11 @@ $$
 }
 $$
 
-The first term says:
+The 1st term says:
 
 > Where did this point land in latent space?
 
-The second says:
+The 2nd says:
 
 > How much did the transformation stretch or compress space around it?
 
@@ -1051,7 +971,7 @@ That is normalizing flows.
 
 ---
 
-# 25. Why do we want a simple latent distribution?
+# 25. Why a simple latent distribution?
 
 Suppose
 
@@ -1075,7 +995,7 @@ $$
 \text{simple geometry}.
 $$
 
-This connects directly to the motivation of NICE: find a representation in which the distribution becomes easier to model, particularly a factorized distribution.
+This is the motivation of NICE: find a representation in which the distribution becomes easier to model, particularly a factorized distribution.
 
 ---
 
@@ -1116,13 +1036,11 @@ $$
 
 So the model is learning:
 
-> **How should I warp space so that the observed data becomes probable under a simple base distribution?**
+> **How should we warp space so that the observed data becomes probable under a simple base distribution?**
 
 ---
 
 # 27. The geometric interpretation of training
-
-This gives me a much better mental model than "the neural network learns a density."
 
 Imagine that the data occupies a complicated high-density region.
 
@@ -1162,17 +1080,11 @@ $$
 
 So the flow needs to transform the correlated data into approximately independent latent coordinates.
 
-This is conceptually related to the motivation behind independent component analysis.
-
-NICE frames its objective in terms of learning a nonlinear transformation into a factorized latent distribution.
-
 ---
 
 # 29. Why normalizing flows are different from VAEs
 
-This distinction is worth understanding conceptually.
-
-A VAE typically introduces an approximate posterior:
+A VAE introduces an approximate posterior:
 
 $$
 q_\phi(z|x).
@@ -1180,7 +1092,7 @@ $$
 
 If $q$ is too simple, it may not resemble the true posterior.
 
-The normalizing-flow paper begins from precisely this limitation and proposes flows as a way to make the approximate distribution progressively more flexible.
+Normalizing-flow begins from this limitation and proposes flows as a way to make the approximate distribution progressively more flexible.
 
 The flow idea is:
 
@@ -1204,8 +1116,6 @@ The initial distribution can be simple.
 
 The final distribution can be extremely complicated.
 
-This is the important conceptual move:
-
 > **Complexity comes from transforming a simple distribution rather than specifying the complex distribution directly.**
 
 ---
@@ -1228,45 +1138,29 @@ $$
 \mathbb E_{q_0}\left[h(f_K\circ\cdots\circ f_1(z_0))\right].
 $$
 
-So if I only need an expectation and $h$ doesn't itself depend on $q_K$, I can sample from the base and transform the samples without explicitly computing the final density.
-
-This distinction becomes important when comparing different kinds of flows and applications.
+So if we only need an expectation and $h$ doesn't itself depend on $q_K$, we can sample from the base and transform the samples without explicitly computing the final density.
 
 ---
 
-# 31. What I should NOT memorize
+# 31. Memorize
 
-I do not want to memorize:
-
-> "A coupling layer is defined by equations $4$ and $5$."
-
-Instead, I want to remember:
+### Coupling Layer
 
 > **Freeze half → use it to transform the other half → triangular Jacobian → cheap determinant → easy inverse.**
 
-That sentence should trigger the equations automatically.
-
-Similarly:
-
 ### Change of variables
-
-Don't memorize:
 
 $$
 p_X=p_Z|\det J|.
 $$
 
-Remember:
+Memorize:
 
 > **Same probability mass + changed volume = density correction.**
 
-### Composition
+### Compositio
 
-Don't memorize equation $7$.
-
-Remember:
-
-> **Each layer contributes a log-determinant; logs turn products into sums.**
+> **Each layer contributes a log-determinant, logs turn products into sums.**
 
 ### Affine coupling
 
@@ -1280,13 +1174,13 @@ That is mathematical compression.
 
 ---
 
-# 32. The three questions I should ask whenever I see a new flow
+# 32. The 3 questions we should ask whenever we see a new flow
 
-Whenever I encounter a new architecture, I should immediately ask:
+Whenever we encounter a new architecture, we should immediately ask:
 
 ### Question 1: Is it invertible?
 
-Can I compute:
+Can we compute:
 
 $$
 x=f^{-1}(z)?
@@ -1294,9 +1188,9 @@ $$
 
 If not, it isn't a standard normalizing flow of this type.
 
-### Question 2: Can I compute the log determinant?
+### Question 2: Can we compute the log determinant?
 
-Can I efficiently calculate:
+Can we efficiently calculate:
 
 $$
 \log|\det J_f(x)|?
@@ -1306,47 +1200,47 @@ $$
 
 Can repeated application of these simple transformations represent complicated distributions?
 
-These three questions explain a huge fraction of normalizing-flow architecture design.
+These 3 questions explain a huge fraction of normalizing-flow architecture design.
 
 ---
 
 # 33. The historical progression now makes sense
 
-Instead of memorizing papers chronologically, I can understand the progression as a sequence of problems.
+Instead of memorizing papers chronologically, we can understand the progression as a sequence of problems.
 
 ### Problem 1
 
-How do I transform a simple density into a complicated one?
+How do we transform a simple density into a complicated one?
 
 → Change of variables.
 
 ### Problem 2
 
-How do I compose many transformations?
+How do we compose many transformations?
 
 → Log determinants add.
 
 ### Problem 3
 
-How do I make the inverse tractable?
+How do we make the inverse tractable?
 
 → Coupling layers.
 
 ### Problem 4
 
-How do I make the determinant tractable?
+How do we make the determinant tractable?
 
 → Triangular Jacobians.
 
 ### Problem 5
 
-How do I make the transformation expressive?
+How do we make the transformation expressive?
 
 → Stack many coupling layers and alternate partitions.
 
 ### Problem 6
 
-How do I allow volume changes?
+How do we allow volume changes?
 
 → Affine coupling / scaling.
 
@@ -1358,9 +1252,9 @@ NICE's additive coupling is volume-preserving, while Real NVP introduces scaling
 
 # 34. Why the papers initially looked harder than they really are
 
-I think this is worth recording explicitly.
+We think this is worth recording explicitly.
 
-When I first see:
+When we 1st see:
 
 $$
 q_K(z_K)
@@ -1396,11 +1290,11 @@ My job as a learner is to decompress it.
 
 # 35. My study protocol for normalizing flows
 
-I would study this subject in the following order.
+We would study this subject in the following order.
 
 ## Stage 1: Change of variables
 
-Before reading more flow papers, make sure I can derive and understand:
+Before reading more flow papers, make sure we can derive and understand:
 
 $$
 p_Y(y)
@@ -1412,7 +1306,7 @@ p_X(x)
 \right|.
 $$
 
-I should be able to explain this geometrically.
+We should be able to explain this geometrically.
 
 ### Toy exercise
 
@@ -1523,7 +1417,7 @@ Then derive:
 
 Do not look at NICE while doing it.
 
-If I can derive all four from scratch, I understand the central construction.
+If we can derive all four from scratch, we understand the central construction.
 
 ---
 
@@ -1585,31 +1479,31 @@ This is where the entire architecture should finally feel natural.
 
 # 41. Stage 7: Only then read Real NVP carefully
 
-At this point I should return to the Real NVP paper.
+At this point we should return to the Real NVP paper.
 
-Now when I see:
+Now when we see:
 
 > affine coupling layer
 
-I already know why it exists.
+We already know why it exists.
 
-When I see:
+When we see:
 
 > triangular Jacobian
 
-I know why.
+We know why.
 
-When I see:
+When we see:
 
 > alternating masks
 
-I know why.
+We know why.
 
-When I see:
+When we see:
 
 > multi-scale architecture
 
-I can ask what computational or representational problem it is solving.
+We can ask what computational or representational problem it is solving.
 
 That is dramatically different from reading the paper from page 1 and hoping the notation eventually becomes meaningful.
 
@@ -1617,7 +1511,7 @@ That is dramatically different from reading the paper from page 1 and hoping the
 
 # 42. My paper-reading template
 
-For every new normalizing-flow paper, I should fill this out.
+For every new normalizing-flow paper, we should fill this out.
 
 ### Problem
 
@@ -1637,11 +1531,11 @@ What equation makes the trick work?
 
 ### Invertibility
 
-Why can I calculate the inverse?
+Why can we calculate the inverse?
 
 ### Jacobian
 
-Why can I calculate the determinant?
+Why can we calculate the determinant?
 
 ### Expressivity
 
@@ -1657,13 +1551,13 @@ What does the architecture sacrifice?
 
 ### Toy example
 
-Can I reproduce the mechanism in 1–2 dimensions?
+Can we reproduce the mechanism in 1–2 dimensions?
 
-If I can answer these questions, I understand the paper much better than if I have merely read every page.
+If we can answer these questions, we understand the paper much better than if we have merely read every page.
 
 ---
 
-# 43. The proof-pattern library I want to build
+# 43. The proof-pattern library we want to build
 
 Normalizing flows also give me several reusable mathematical patterns.
 
@@ -1734,7 +1628,7 @@ This last sentence is almost the entire coupling-layer trick.
 
 ---
 
-# 44. The deepest insight I want to remember
+# 44. The deepest insight we want to remember
 
 The brilliance of normalizing flows is not:
 
@@ -1772,7 +1666,7 @@ This is a recurring theme in theoretical machine learning:
 
 # 45. One final mental model
 
-If I forget everything else, I want to remember this:
+If we forget everything else, we want to remember this:
 
 ```text
                     NORMALIZING FLOW
@@ -1812,7 +1706,7 @@ $$
 The entire architectural problem is therefore:
 
 ```text
-Can I construct f such that:
+Can we construct f such that:
 
     f is expressive
         +
@@ -1829,15 +1723,15 @@ NICE gives the additive, volume-preserving version.
 
 Real NVP adds learnable scaling.
 
-Stack enough of these simple transformations and I obtain a highly nonlinear invertible transformation capable of modeling complicated distributions.
+Stack enough of these simple transformations and we obtain a highly nonlinear invertible transformation capable of modeling complicated distributions.
 
 That is the conceptual core.
 
 ---
 
-# 46. What I should be able to do before moving on
+# 46. What we should be able to do before moving on
 
-I should **not** proceed to more advanced flow architectures until I can do the following without looking at the paper:
+We should **not** proceed to more advanced flow architectures until we can do the following without looking at the paper:
 
 * [ ] Explain change of variables geometrically.
 * [ ] Derive the 1D density transformation.
@@ -1853,15 +1747,15 @@ I should **not** proceed to more advanced flow architectures until I can do the 
 * [ ] Explain the complete likelihood calculation.
 * [ ] Explain generation using $f^{-1}$.
 
-If I can do those, I don't need to spend another week "understanding normalizing flows."
+If we can do those, we don't need to spend another week "understanding normalizing flows."
 
-I have the mechanism.
+We have the mechanism.
 
-Now I can move upward.
+Now we can move upward.
 
 ---
 
-# 47. Next questions I should investigate
+# 47. Next questions we should investigate
 
 Once the above feels comfortable, these are the natural next questions:
 
@@ -1880,6 +1774,6 @@ Those are no longer ten unrelated topics.
 
 They are all variations on the same question:
 
-> **How can I construct a complicated transformation while retaining enough mathematical structure to compute what I need?**
+> **How can we construct a complicated transformation while retaining enough mathematical structure to compute what we need?**
 
-And that is the question I should carry into every new normalizing-flow paper.
+And that is the question we should carry into every new normalizing-flow paper.

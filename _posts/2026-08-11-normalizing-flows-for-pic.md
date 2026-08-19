@@ -3,6 +3,7 @@ layout: post
 title: "Normalizing Flows for PIC"
 date: 2026-08-11
 category: pic
+published: false
 ---
 
 <!-- Working draft. Fill in each section as the work progresses; push updates any time. -->

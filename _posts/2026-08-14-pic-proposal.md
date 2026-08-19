@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Simulator-in-the-Loop Conditional Generative Inverse Design for Photonic Systems"
-date: 2026-08-18
+date: 2026-08-14
 category: pic
 ---
 

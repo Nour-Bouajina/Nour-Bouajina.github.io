@@ -33,9 +33,7 @@ $$
 \boxed{\theta\longrightarrow S(\theta)=y}
 $$
 
-The problem we care about is the inverse problem.
-
-Given a desired target spectrum
+For our problem (the inverse problem), Given a desired target spectrum
 
 $$
 y^\star,
@@ -46,29 +44,6 @@ we want to find knob configurations $\theta$ for which
 $$
 S(\theta)\approx y^\star.
 $$
-
-At first glance, this looks like a standard optimization problem:
-
-$$
-\theta^\star
-=
-
-\arg\min_\theta
-d(S(\theta),y^\star).
-$$
-
-For example, if we use squared Euclidean error,
-
-$$
-d(S(\theta),y^\star)
-=
-
-|S(\theta)-y^\star|_2^2.
-$$
-
-This would give us **one** solution.
-
-However, this is not actually the problem we want to solve.
 
 ---
 
@@ -116,22 +91,21 @@ For a particular target, we can define its approximate solution set as
 
 $$
 \boxed{
-\mathcal S(y^\star)
+\mathcal S^\star(y^\star)
 =
 
-\{\theta\in\mathbb R^{42}:S(\theta)\approx y^\star\}.
+\{\theta\in\mathbb R^{42}:S(\theta)\approx y^\star\}.  
 }
 $$
+($\mathcal S^\star$ is the inverse Solution, $\mathcal S$ is the forward simulator)
 
 Our goal is therefore not simply:
 
-> Find one point in $\mathcal S(y^\star)$.
+> Find one point in $\mathcal S\star(y^\star)$.
 
 Our goal is:
 
 > **Understand and model the distribution of valid knob configurations associated with a target spectrum, so that we can generate many different valid designs.**
-
-This changes the nature of the problem.
 
 ---
 
@@ -225,17 +199,19 @@ d(S(f_\phi(z;y^\star)),y^\star)
 \right]
 $$
 
-handles validity, but creates an important problem.
+handles validity, but not diversity, all solutions will colapse to just one.
 
 ---
 
 ## 4. The collapse problem
 
-Suppose we introduce a random variable $z$ and generate
+Suppose we introduce a random variable $z$ (that doesn't have an actual physical meaning but is the seed of modeling the distributions we care about) and generate
 
 $$
 \theta=f_\phi(z;y^\star).
 $$
+
+(with $\mathcal \phi$ being the Neural Network's model parameters)
 
 We sample many different values:
 
@@ -261,23 +237,7 @@ $$
 L_i=d(y_i,y^\star).
 $$
 
-It is tempting to train only using
-
-$$
-\boxed{
-L_{\mathrm{physics}}
-=
-
-\mathbb E_z
-[
-d(S(f_\phi(z;y^\star)),y^\star)
-].
-}
-$$
-
-But there is a serious problem.
-
-The easiest way for the model to minimize this loss may be to learn one excellent solution $\theta^\star$ and produce it regardless of $z$:
+The easiest way for the model to minimize this loss may be to learn just one good enough solution $\theta^\star$ and produce it regardless of $z$:
 
 $$
 f_\phi(z_1;y^\star)
@@ -295,11 +255,9 @@ $$
 S(\theta^\star)\approx y^\star,
 $$
 
-so the physics loss becomes very small.
+so the physics loss might be small, but we don't explore different solutions.
 
-But we have lost exactly what we wanted: the ability to explore different solutions.
-
-This is a form of **collapse**: different latent inputs fail to produce meaningful variation in the output.
+This is **collapse**: different latent inputs fail to produce meaningful variation in the output.
 
 Therefore, simply optimizing the simulator error is not sufficient.
 
@@ -357,13 +315,13 @@ Instead, we have:
 2. a simulator $S(\theta)$,
 3. the ability to evaluate how well any proposed $\theta$ reproduces $y^\star$.
 
-This leads to a simulator-in-the-loop formulation.
+So we opted for a simulator-in-the-loop formulation.
 
 ---
 
 ## 6. What exactly is $p(\theta\mid y^\star)$?
 
-An important subtlety is that the simulator naturally gives us a **solution set**, but not necessarily a unique probability distribution over that set.
+The simulator naturally gives us a **solution set**, but not necessarily a unique probability distribution over that set.
 
 Suppose
 
@@ -401,13 +359,11 @@ Physics determines **which configurations are compatible with the target**. A pr
 
 This gives us an experimental degree of freedom.
 
-We can experiment with different choices of the prior $p(\theta)$, different mismatch functions $d$, and different values of $\beta$.
-
 ---
 
 ## 7. A probabilistic formulation of the solution distribution
 
-A natural way to construct a distribution over solutions is
+One way to construct a distribution over solutions is
 
 $$
 \boxed{
@@ -418,7 +374,7 @@ p(\theta)
 }
 $$
 
-This equation is central to our formulation, so it is worth deriving and understanding carefully.
+This equation is a central choice.
 
 Here:
 
@@ -442,11 +398,13 @@ p(\theta\mid y^\star)
 \exp[-\beta d(S(\theta),y^\star)].
 $$
 
+(We can experiment with different choices of the prior $p(\theta)$, different mismatch functions $d$, and different values of $\beta$.)
+
 ---
 
-## 8. Why the exponential?
+## 8. Why the exponential
 
-Suppose
+If
 
 $$
 d(S(\theta),y^\star)
@@ -491,11 +449,11 @@ $$
 
 acts as a soft measure of compatibility with the target.
 
-A small spectral error gives high probability weight; a large spectral error gives very little probability weight.
+A small spectral error gives high probability weight, a large spectral error gives very little probability weight.
 
 ---
 
-## 9. What does $\beta$ mean?
+## 9. Meaning of $\beta$
 
 The parameter $\beta$ determines how strongly spectral accuracy controls the distribution.
 
@@ -543,13 +501,7 @@ The prior allows us to express preferences over knob configurations independentl
 
 For example, if all physically allowed configurations are considered equally desirable, we can use a uniform prior.
 
-But we could also construct a prior that favors:
-
-* particular ranges of knob values,
-* robust designs,
-* fabrication-friendly configurations,
-* physically preferred configurations,
-* or other properties.
+But we could also construct a prior that favors particular ranges of knob values, physically preferred configurations or other properties.
 
 Thus,
 
@@ -561,7 +513,7 @@ is not necessarily "the truth."
 
 It is part of how we define the particular distribution of solutions that we want our model to represent.
 
-This means that experimenting with different priors is meaningful.
+So experimenting with different priors is important.
 
 ---
 
@@ -617,7 +569,7 @@ $$
 \theta\sim q_\phi(\theta\mid y^\star).
 $$
 
-Our hope is that
+Our goal is
 
 $$
 \boxed{
@@ -627,15 +579,7 @@ p(\theta\mid y^\star).
 }
 $$
 
----
-
-## 12. What does $z$ actually mean?
-
-It is tempting to think that $z$ must have some physical interpretation.
-
-It does not necessarily.
-
-The latent variable is simply a source of variation.
+For z, an interpretation of it is:
 
 If
 
@@ -659,13 +603,11 @@ A successful generative model should use the different regions of $z$-space to r
 
 Thus, $z$ can be thought of as a coordinate for exploring the variability of the possible designs.
 
-It is not necessarily a physical coordinate.
-
 ---
 
-## 13. Why use a normalizing flow?
+## 12. About normalizing flow
 
-A normalizing flow gives us a particularly useful construction because it learns an invertible transformation between a simple base distribution and a complicated target distribution.
+A normalizing flow gives a kinda useful construction because it learns an invertible transformation between a simple base distribution and a complicated target distribution.
 
 We start with
 
@@ -699,11 +641,11 @@ $$
 
 is tractable and can be evaluated using the change-of-variables formula.
 
-A normalizing flow does **not**, however, automatically discover the "true" distribution. Training is still required. Its advantage is that it gives us a flexible and explicitly tractable representation of the distribution that we choose to learn.
+Extensive training is required for a normalizing flow to discover the "true" distribution. Its advantage is that it gives us a flexible and explicitly tractable representation of the distribution that we choose to learn.
 
 ---
 
-## 14. Why is the latent dimension normally 42?
+## 13. Why is the latent dimension normally 42?
 
 Our design variable is
 
@@ -729,7 +671,7 @@ The dimensions match because the transformation is invertible.
 
 A generic generator, VAE, GAN, or other non-invertible generative model does not necessarily require this equality. For example, such a model could use a lower-dimensional latent variable.
 
-This is worth keeping in mind because our physical solution set may have lower intrinsic dimensionality than 42. If that turns out to be important, a standard full-dimensional normalizing flow may not be the ideal representation.
+Our physical solution set may have lower intrinsic dimensionality than 42. If that turns out to be important, a standard full-dimensional normalizing flow may not be the ideal representation.
 
 For the initial experiments, however, we can use
 
@@ -737,13 +679,13 @@ $$
 z\in\mathbb R^{42}
 $$
 
-and investigate other dimensionalities with alternative generative architectures if necessary.
+and investigate other dimensionalities with alternative generative architectures based on the primary results.
 
 ---
 
-## 15. The simulator gives us something extremely valuable: gradients
+## 14. Importantly the simulator gives us gradients
 
-Our forward simulator is differentiable.
+The forward simulator is differentiable.
 
 We have
 
@@ -812,7 +754,7 @@ J_S(\theta)^T\nabla_y d(y,y^\star).
 }
 $$
 
-The dimensions make this clear:
+And the dimensions work out:
 
 $$
 (42\times400)(400\times1)
@@ -821,9 +763,9 @@ $$
 42\times1.
 $$
 
-So the transpose appears because the Jacobian maps changes in the 42-dimensional knob vector into changes in the 400-dimensional spectrum, while the backward gradient must propagate in the opposite direction.
+The Jacobian maps changes in the 42-dimensional knob vector into changes in the 400-dimensional spectrum, while the backward gradient must propagate in the opposite direction.
 
-We therefore write
+So we define
 
 $$
 \boxed{
@@ -841,13 +783,13 @@ $$
 y=S(\theta).
 $$
 
-We do **not** need to explicitly construct the full $400\times42$ Jacobian if our automatic-differentiation framework can compute the corresponding vector-Jacobian product directly.
+Dunno if we need to explicitly construct the full $400\times42$ Jacobian. (can automatic-differentiation framework compute the corresponding vector-Jacobian product directl?)
 
 ---
 
-## 16. This gives us simulator-in-the-loop training
+## 15. This gives us simulator-in-the-loop training
 
-We can now put the pieces together.
+The full picture is like this.
 
 For a target spectrum $y^\star$:
 
@@ -887,7 +829,7 @@ S(\theta)
 d.
 $$
 
-Thus we do **not** need to first create a huge dataset of pairs
+Thus we do not need to first create a huge dataset of pairs
 
 $$
 (\theta,S(\theta)).
@@ -895,11 +837,9 @@ $$
 
 Instead, the simulator itself provides the training signal.
 
-This is the central **simulator-in-the-loop** idea.
-
 ---
 
-## 17. What happens if we only use the physics loss?
+## 16. The distribution-matching objective
 
 If we use only
 
@@ -915,10 +855,6 @@ d(S(f_\phi(z;y^\star)),y^\star)
 }
 $$
 
-then the model is being trained to generate valid designs.
-
-But this alone does not force it to represent the entire solution distribution.
-
 It can collapse:
 
 $$
@@ -929,11 +865,7 @@ $$
 
 for many different $z_1,z_2$.
 
-Therefore, if our goal is distribution learning, we need a distributional objective.
-
----
-
-## 18. The distribution-matching objective
+Therefore, we have to define a distributional objective.
 
 We define
 
@@ -949,7 +881,7 @@ $$
 p(\theta\mid y^\star).
 $$
 
-We therefore want
+We want
 
 $$
 \boxed{
@@ -1015,7 +947,7 @@ $$
 
 ---
 
-## 19. Deriving the training objective
+## 17. Deriving the training objective
 
 We start from
 
@@ -1123,7 +1055,7 @@ This is the key equation connecting the probabilistic formulation to the simulat
 
 ---
 
-## 20. Interpreting the three terms
+## 18. Interpreting the three terms
 
 Our objective is
 
@@ -1148,8 +1080,6 @@ $$
 }
 $$
 
-says:
-
 > Generated knob configurations should produce the desired spectrum.
 
 ### Prior term
@@ -1159,8 +1089,6 @@ $$
 -\log p(\theta)
 }
 $$
-
-says:
 
 > Prefer knob configurations according to our chosen prior.
 
@@ -1174,64 +1102,21 @@ $$
 
 is part of the KL divergence and prevents us from reducing the problem to merely minimizing the expected physics error. Together with the target distribution, it determines how probability mass is represented.
 
-It is therefore better not to call this term simply a "diversity loss." The more precise statement is:
+So it is more like:
 
 > **We are matching the entire generated distribution to a specified target distribution, and diversity emerges according to the structure of that target distribution.**
 
----
-
-## 21. What does "diversity" mean in our formulation?
-
-We do **not** want arbitrary differences between knob vectors.
-
-For example, it would be useless to generate
-
-$$
-\theta_1,\theta_2,\theta_3
-$$
-
-that are extremely different but all produce terrible spectra.
-
-Our desired diversity is:
-
-$$
-\boxed{
-\text{different designs}
-+
-\text{same desired behavior}.
-}
-$$
-
-Therefore:
-
-$$
-\theta_i\neq\theta_j
-$$
-
-should occur while
-
-$$
-S(\theta_i)\approx y^\star
-$$
-
-and
-
-$$
-S(\theta_j)\approx y^\star.
-$$
-
-The simulator determines validity.
 
 The distribution $p(\theta\mid y^\star)$ determines how we want the valid solutions to be represented.
 
 ---
 
-## 22. A crucial distinction: solution set versus solution distribution
+## 19. solution set vs solution distribution
 
 The simulator gives us a solution set:
 
 $$
-\mathcal S(y^\star)
+\mathcal S^\star(y^\star)
 =
 
 \{\theta:S(\theta)\approx y^\star\}.
@@ -1257,7 +1142,7 @@ $$
 p(\theta_1)=p(\theta_2)=p(\theta_3)=\frac13,
 $$
 
-or perhaps
+or 
 
 $$
 p(\theta_1)=0.8,\qquad
@@ -1279,13 +1164,11 @@ $$
 \beta.
 $$
 
-We can ask experimentally:
-
-> Which choice gives us a useful representation of the solution space?
+With experimentation we look for which choice gives us a useful representation of the solution space?
 
 ---
 
-## 23. The complete conceptual picture
+## 20. The complete conceptual picture
 
 The complete idea can now be summarized as
 
@@ -1344,17 +1227,7 @@ The simulator determines **whether that sample actually produces the desired phy
 
 The distributional objective determines **how we learn the whole distribution rather than only one solution**.
 
----
-
-## 24. We do not train a separate model for every target
-
-A very important question is:
-
-> **How can one model be trained when everything is conditioned on different $y^\star$'s?**
-
-We do **not** train one flow for every target spectrum.
-
-Instead, we train **one conditional flow**:
+It is a **one conditional flow**:
 
 $$
 \boxed{
@@ -1364,7 +1237,7 @@ $$
 
 The target spectrum $y$ is an input to the model.
 
-For example, suppose our training set contains target spectra
+Our training set contains target spectra
 
 $$
 y_1^\star,y_2^\star,\ldots,y_K^\star.
@@ -1428,7 +1301,7 @@ $$
 
 ---
 
-## 25. What one training iteration looks like
+## 21. What one training iteration looks like
 
 Suppose one minibatch contains $B$ target spectra:
 
@@ -1501,267 +1374,19 @@ S
 d
 $$
 
-and update the **same parameters $\phi$**.
-
-The model therefore learns a general rule:
-
-$$
-\boxed{
-y^\star
-\longrightarrow
-\text{distribution over suitable }\theta.
-}
-$$
-
-It is not memorizing one target at a time.
+and update the parameters $\phi$.
 
 ---
 
-## 26. An intuitive example of conditional training
+## 22. What we want to investigate experimentally
 
-Suppose our training targets contain:
-
-* a bandpass spectrum,
-* a bandstop spectrum,
-* a Dirac-like spectrum,
-* another bandpass with a different center wavelength,
-* another bandstop with a different bandwidth.
-
-During training, the same flow sees different conditions:
-
-$$
-q_\phi(\theta\mid y_{\text{bandpass}})
-$$
-
-then
-
-$$
-q_\phi(\theta\mid y_{\text{bandstop}})
-$$
-
-then
-
-$$
-q_\phi(\theta\mid y_{\text{Dirac}})
-$$
-
-and so on.
-
-The flow parameters $\phi$ are shared.
-
-The target $y^\star$ tells the network which conditional distribution it should generate.
-
-Thus the model is learning the general conditional relationship:
-
-$$
-\boxed{
-\text{spectrum requirement}
-\longrightarrow
-\text{distribution of physical designs}.
-}
-$$
-
-At inference time, we give it a new target spectrum:
-
-$$
-y_{\mathrm{new}}^\star
-$$
-
-and sample
-
-$$
-z_1,z_2,\ldots,z_M.
-$$
-
-The flow generates
-
-$$
-\theta_1,\theta_2,\ldots,\theta_M
-$$
-
-which are intended to be different designs for that new target.
-
----
-
-## 27. Where do the target spectra come from?
-
-This is an important distinction.
-
-Our training does not require a conventional dataset of randomly generated
-
-$$
-(\theta,S(\theta))
-$$
-
-pairs.
-
-Instead, we can have a collection of desired target spectra:
-
-$$
-\boxed{
-\mathcal D_y=
-\{y_1^\star,y_2^\star,\ldots,y_K^\star\}.
-}
-$$
-
-These targets can be designed according to the photonics problems we actually care about.
-
-For every training target, the simulator is queried **during training** to evaluate the generated knob configurations.
-
-Thus the expensive question
-
-> "Which random knob configurations should we simulate beforehand so that the dataset contains enough examples of our rare target spectra?"
-
-is replaced by
-
-> "Given the target we care about, which knob configurations does our current generator propose, and what does the simulator say about them?"
-
-This is the motivation for simulator-in-the-loop learning.
-
----
-
-## 28. Why this is particularly useful for rare target spectra
-
-Suppose random sampling of the 42 knobs almost never produces a spectrum resembling a desired bandpass.
-
-A conventional supervised approach might do:
-
-$$
-\theta
-\rightarrow
-S(\theta)
-$$
-
-millions or billions of times, hoping that enough useful examples appear.
-
-But our targets are known in advance.
-
-We already know that a particular spectrum $y^\star$ is interesting.
-
-So instead of waiting for random knob configurations to accidentally produce it, we actively ask the generator:
-
-$$
-\boxed{
-\text{What knobs could produce this target?}
-}
-$$
-
-and immediately test those proposed knobs through the simulator.
-
-This focuses simulation effort on the region of design space relevant to the inverse problem.
-
----
-
-## 29. Simulator gradients complete the loop
-
-Because
-
-$$
-S(\theta)
-$$
-
-is differentiable, an error in the spectrum can be propagated backward.
-
-The chain is:
-
-$$
-z
-\rightarrow
-\theta
-\rightarrow
-S(\theta)
-\rightarrow
-d(S(\theta),y^\star).
-$$
-
-We can calculate
-
-$$
-\nabla_\theta d
-=
-
-J_S^T\nabla_y d.
-$$
-
-Then because
-
-$$
-\theta=f_\phi(z;y^\star),
-$$
-
-we can continue the chain rule:
-
-$$
-\boxed{
-\nabla_\phi L
-=
-
-\frac{\partial L}{\partial\theta}
-\frac{\partial\theta}{\partial\phi}.
-}
-$$
-
-Therefore, the simulator does not merely tell us whether a generated design is good or bad.
-
-Its differentiability tells us **how to change the generated design to improve the spectrum**, and this information can propagate back into the parameters of the conditional generator.
-
----
-
-## 30. Important distinction: simulator loss versus maximum likelihood
-
-If we train only with
-
-$$
-L_{\mathrm{physics}}
-=
-
-E_z[d(S(f_\phi(z;y^\star)),y^\star)],
-$$
-
-then we are training a **stochastic inverse-design generator**.
-
-We are not automatically performing maximum-likelihood training of a normalizing flow.
-
-If, however, we explicitly define
-
-$$
-p(\theta\mid y^\star)
-$$
-
-and minimize
-
-$$
-D_{\mathrm{KL}}
-(q_\phi(\theta\mid y^\star)
-|
-p(\theta\mid y^\star)),
-$$
-
-then we have a **distribution-matching / variational inference formulation**.
-
-The normalizing flow is useful here because it provides a tractable density
-
-$$
-q_\phi(\theta\mid y^\star).
-$$
-
-This distinction is important: the simulator provides the physical information, while the probabilistic formulation specifies what distribution we want the generator to learn.
-
----
-
-## 31. What we want to investigate experimentally
-
-The formulation gives us several natural experimental questions.
-
-### 31.1 Latent dimensionality
-
-For a standard normalizing flow,
+### 22.1 Latent dimensionality
 
 $$
 \dim z=42
 $$
 
-is the natural choice.
+is the natural start-point choice.
 
 However, the actual solution variability may have lower intrinsic dimensionality.
 
@@ -1773,7 +1398,7 @@ The question is:
 
 ---
 
-### 31.2 Different priors $p(\theta)$
+### 22.2 Different priors $p(\theta)$
 
 We can experiment with different choices of
 
@@ -1795,7 +1420,7 @@ The question is:
 
 ---
 
-### 31.3 Different values of $\beta$
+### 22.3 Different values of $\beta$
 
 We can investigate:
 
@@ -1811,7 +1436,7 @@ The question is:
 
 ---
 
-### 31.4 Spectral resolution
+### 22.4 Spectral resolution
 
 Our current spectrum has
 
@@ -1831,11 +1456,11 @@ The question is:
 
 > **How much spectral information is necessary for the conditional generator to learn the inverse mapping and the diversity of solutions?**
 
-This is not only a computational question. Reducing the spectrum dimensionality may also change the geometry of the inverse problem because fewer output constraints can potentially leave more ambiguity in the 42-dimensional knob space.
+Reducing the spectrum dimensionality may also change the geometry of the inverse problem because fewer output constraints can potentially leave more ambiguity in the 42-dimensional knob space.
 
 ---
 
-### 31.5 Number of latent samples per target
+### 22.5 Number of latent samples per target
 
 During training, we can generate
 
@@ -1853,78 +1478,7 @@ The question is:
 
 ---
 
-## 32. An important alternative: best-of-$M$
-
-There is also a simpler formulation worth testing.
-
-For a target $y^\star$, sample
-
-$$
-z_1,\ldots,z_M.
-$$
-
-Generate
-
-$$
-\theta_i=G_\phi(y^\star,z_i).
-$$
-
-Run the simulator:
-
-$$
-y_i=S(\theta_i).
-$$
-
-Calculate
-
-$$
-L_i=d(y_i,y^\star).
-$$
-
-Then use
-
-$$
-\boxed{
-L_{\mathrm{best}}
-=
-
-\min_i L_i.
-}
-$$
-
-This asks a different question:
-
-> **Can our generator produce at least one excellent design among $M$ samples?**
-
-This could be useful if our practical objective is simply to obtain one excellent inverse design.
-
-However, it does **not** necessarily learn the entire solution distribution.
-
-For example, the model could generate:
-
-$$
-\theta_1,\ldots,\theta_{M-1}
-$$
-
-that are poor solutions and one excellent solution $\theta_M$.
-
-The minimum loss would still be excellent.
-
-Therefore:
-
-$$
-\boxed{
-L_{\mathrm{best}}
-}
-$$
-
-is suitable for **"at least one good design"**, whereas distribution matching is aimed at **"many different valid designs."**
-
-We can experimentally compare these objectives because they correspond to different practical goals.
-
----
-
-## 33. The central research question
+## 23. The central research question
 
 Everything above can ultimately be reduced to one question:
 
@@ -1979,7 +1533,7 @@ while the generated designs capture meaningful diversity.
 
 ---
 
-## 34. The entire idea in one picture
+## 24. The entire idea
 
 ```text
                     OUR HIGH-LEVEL GOAL
@@ -2085,7 +1639,7 @@ and learned through a conditional generative model whose samples are evaluated d
 
 ---
 
-## 35. The key equations
+## 25. The key equations
 
 For reference, the core mathematical structure is:
 
@@ -2234,5 +1788,3 @@ with
 $$
 \theta=f_\phi(z;y^\star).
 $$
-
-This last equation is what allows **one conditional model** to learn many different inverse problems simultaneously: every target spectrum supplies a different condition $y^\star$, while the same parameters $\phi$ learn the general mapping from desired spectra to distributions of physical designs.

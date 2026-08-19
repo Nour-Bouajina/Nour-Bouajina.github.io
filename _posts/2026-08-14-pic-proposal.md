@@ -93,7 +93,6 @@ $$
 \boxed{
 \mathcal S^\star(y^\star)
 =
-
 \{\theta\in\mathbb R^{42}:S(\theta)\approx y^\star\}.  
 }
 $$
@@ -180,7 +179,6 @@ $$
 \boxed{
 \text{good solutions}
 =
-
 \text{validity}
 +
 \text{diversity}.
@@ -192,7 +190,6 @@ A naive objective such as
 $$
 L_{\mathrm{physics}}
 =
-
 \mathbb E_z
 \left[
 d(S(f_\phi(z;y^\star)),y^\star)
@@ -342,7 +339,6 @@ But the simulator alone does not necessarily tell us whether
 $$
 p(\theta_1\mid y^\star)
 =
-
 p(\theta_2\mid y^\star)
 $$
 
@@ -351,7 +347,6 @@ or whether
 $$
 p(\theta_1\mid y^\star)
 =
-
 10p(\theta_2\mid y^\star).
 $$
 
@@ -409,7 +404,6 @@ If
 $$
 d(S(\theta),y^\star)
 =
-
 |S(\theta)-y^\star|_2^2.
 $$
 
@@ -698,7 +692,6 @@ Therefore, we can calculate how the output spectrum changes as we change the kno
 $$
 J_S(\theta)
 =
-
 \frac{\partial S}{\partial\theta}.
 $$
 
@@ -727,7 +720,6 @@ Now define our spectral loss:
 $$
 L(\theta)
 =
-
 d(S(\theta),y^\star).
 $$
 
@@ -749,7 +741,6 @@ $$
 \boxed{
 \nabla_\theta L
 =
-
 J_S(\theta)^T\nabla_y d(y,y^\star).
 }
 $$
@@ -759,7 +750,6 @@ And the dimensions work out:
 $$
 (42\times400)(400\times1)
 =
-
 42\times1.
 $$
 
@@ -771,7 +761,6 @@ $$
 \boxed{
 \nabla_\theta d(S(\theta),y^\star)
 =
-
 J_S(\theta)^T
 \nabla_y d(y,y^\star)
 }
@@ -847,7 +836,6 @@ $$
 \boxed{
 L_{\mathrm{physics}}
 =
-
 \mathbb E_{z}
 \left[
 d(S(f_\phi(z;y^\star)),y^\star)
@@ -910,7 +898,6 @@ $$
 \boxed{
 \phi^\star
 =
-
 \arg\min_\phi
 D_{\mathrm{KL}}
 \left(
@@ -954,12 +941,10 @@ We start from
 $$
 D_{\mathrm{KL}}(q_\phi|p)
 =
-
 \mathbb E_{q_\phi}
 \left[
 \log q_\phi(\theta\mid y^\star)
 -
-
 \log p(\theta\mid y^\star)
 \right].
 $$
@@ -969,7 +954,6 @@ Our target distribution is
 $$
 p(\theta\mid y^\star)
 =
-
 \frac{
 p(\theta)
 e^{-\beta d(S(\theta),y^\star)}
@@ -983,7 +967,6 @@ where
 $$
 Z(y^\star)
 =
-
 \int
 p(\theta)
 e^{-\beta d(S(\theta),y^\star)}
@@ -997,11 +980,8 @@ Taking the logarithm:
 $$
 \log p(\theta\mid y^\star)
 =
-
 - \log p(\theta)
-
 - \beta d(S(\theta),y^\star)
-
 \log Z(y^\star).
 $$
 
@@ -1010,12 +990,10 @@ Substituting into the KL divergence gives
 $$
 D_{\mathrm{KL}}(q_\phi|p)
 =
-
 \mathbb E_{q_\phi}
 \left[
 \log q_\phi(\theta\mid y^\star)
 -
-
 \log p(\theta)
 +
 \beta d(S(\theta),y^\star)
@@ -1038,12 +1016,10 @@ $$
 \boxed{
 L(\phi)
 =
-
 \mathbb E_{q_\phi(\theta\mid y^\star)}
 \left[
 \log q_\phi(\theta\mid y^\star)
 -
-
 \log p(\theta)
 +
 \beta d(S(\theta),y^\star)
@@ -1067,7 +1043,6 @@ L=
 +
 \underbrace{\log q_\phi(\theta\mid y^\star)}_{\text{distribution/entropy}}
 -
-
 \underbrace{\log p(\theta)}_{\text{prior}}
 \right].
 $$
@@ -1118,7 +1093,6 @@ The simulator gives us a solution set:
 $$
 \mathcal S^\star(y^\star)
 =
-
 \{\theta:S(\theta)\approx y^\star\}.
 $$
 
@@ -1254,7 +1228,6 @@ The model generates
 $$
 \theta_{k,m}
 =
-
 f_\phi(z_m;y_k^\star).
 $$
 
@@ -1263,7 +1236,6 @@ We then run the simulator:
 $$
 \hat y_{k,m}
 =
-
 S(\theta_{k,m})
 $$
 
@@ -1281,7 +1253,6 @@ $$
 \boxed{
 L(\phi)
 =
-
 \mathbb E_{y^\star}
 \mathbb E_{z}
 \left[
@@ -1320,7 +1291,6 @@ Then:
 $$
 \theta_{b,m}
 =
-
 f_\phi(z_{b,m};y_b^\star).
 $$
 
@@ -1329,7 +1299,6 @@ The simulator produces:
 $$
 \hat y_{b,m}
 =
-
 S(\theta_{b,m}).
 $$
 
@@ -1338,7 +1307,6 @@ We calculate:
 $$
 d_{b,m}
 =
-
 d(\hat y_{b,m},y_b^\star).
 $$
 
@@ -1661,7 +1629,6 @@ $$
 \boxed{
 \mathcal S(y^\star)
 =
-
 \{\theta:S(\theta)\approx y^\star\}.
 }
 $$
@@ -1711,7 +1678,6 @@ $$
 \boxed{
 \phi^\star
 =
-
 \arg\min_\phi
 D_{\mathrm{KL}}
 \left(
@@ -1728,12 +1694,10 @@ $$
 \boxed{
 L(\phi)
 =
-
 \mathbb E_{q_\phi}
 \left[
 \log q_\phi(\theta\mid y^\star)
 -
-
 \log p(\theta)
 +
 \beta d(S(\theta),y^\star)
@@ -1747,7 +1711,6 @@ $$
 \boxed{
 \nabla_\theta d(S(\theta),y^\star)
 =
-
 J_S(\theta)^T
 \nabla_y d(y,y^\star),
 }
@@ -1759,7 +1722,6 @@ $$
 \boxed{
 J_S(\theta)
 =
-
 \frac{\partial S}{\partial\theta}
 \in\mathbb R^{400\times42}.
 }
@@ -1771,7 +1733,6 @@ $$
 \boxed{
 L(\phi)
 =
-
 \mathbb E_{y^\star}
 \mathbb E_{z}
 \left[

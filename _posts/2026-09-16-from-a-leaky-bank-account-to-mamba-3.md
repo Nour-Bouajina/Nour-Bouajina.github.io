@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "From a Leaky Bank Account to Mamba-3"
+title: "Mamba, Mamba-2, and Mamba-3: State Space Models From Scratch"
 date: 2026-09-16
 ---
 
